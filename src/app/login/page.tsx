@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,10 +9,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { toast } from "sonner";
 
 export default function LoginPage() {
-  const params = useSearchParams();
-  const next = params.get("next") ?? "/dashboard";
+  const router = useRouter();
   const [email, setEmail] = useState("");
-  const [sent, setSent] = useState(false);
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function onSubmit(e: React.FormEvent) {
@@ -20,13 +19,12 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const supabase = createSupabaseBrowserClient();
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-      });
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
-      setSent(true);
+      router.push("/dashboard");
+      router.refresh();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Не удалось отправить ссылку");
+      toast.error(err instanceof Error ? err.message : "Неверный email или пароль");
     } finally {
       setLoading(false);
     }
@@ -36,34 +34,39 @@ export default function LoginPage() {
     <main className="container flex min-h-screen items-center justify-center py-10">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Вход в WishList</CardTitle>
+          <CardTitle>Вход для организатора</CardTitle>
           <CardDescription>
-            Введите email — пришлём волшебную ссылку для входа без пароля.
+            Введите email и пароль для управления вишлистом.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {sent ? (
-            <div className="rounded-md bg-accent p-4 text-sm text-accent-foreground">
-              Готово! Проверьте почту <b>{email}</b> и перейдите по ссылке.
+          <form onSubmit={onSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
             </div>
-          ) : (
-            <form onSubmit={onSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </div>
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Отправляем..." : "Получить ссылку"}
-              </Button>
-            </form>
-          )}
+            <div className="space-y-2">
+              <Label htmlFor="password">Пароль</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? "Входим..." : "Войти"}
+            </Button>
+          </form>
         </CardContent>
       </Card>
     </main>
