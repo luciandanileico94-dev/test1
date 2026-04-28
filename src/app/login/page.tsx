@@ -23,7 +23,7 @@ export default function LoginPage() {
       const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? window.location.origin;
       const { error } = await supabase.auth.signInWithOtp({
         email,
-        options: { emailRedirectTo: `${siteUrl}/auth/callback?next=${encodeURIComponent(next)}` },
+        options: { emailRedirectTo: `${siteUrl}/auth/callback` },
       });
       if (error) throw error;
       setSent(true);
