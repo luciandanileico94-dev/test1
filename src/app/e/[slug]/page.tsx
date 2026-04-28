@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { PublicEvent } from "@/components/public-event";
-import type { Event, WishlistItem, PublicClaim } from "@/lib/types";
+import type { Event, WishlistItem, AnonymousClaim } from "@/lib/types";
 import type { Metadata } from "next";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -46,15 +46,15 @@ export default async function PublicEventPage({ params }: { params: Promise<{ sl
   const { data: claims } = itemIds.length
     ? await supabase
         .from("claims")
-        .select("id, item_id, guest_name, guest_message, claimed_at")
+        .select("id, item_id, claimed_at")
         .in("item_id", itemIds)
-    : { data: [] as PublicClaim[] };
+    : { data: [] as AnonymousClaim[] };
 
   return (
     <PublicEvent
       event={event as Event}
       items={(items ?? []) as WishlistItem[]}
-      initialClaims={(claims ?? []) as PublicClaim[]}
+      initialClaims={(claims ?? []) as AnonymousClaim[]}
     />
   );
 }

@@ -41,3 +41,6 @@ export type Claim = {
 };
 
 export type PublicClaim = Omit<Claim, "guest_token">;
+
+// Used on public event page — no guest identity exposed
+export type AnonymousClaim = Pick<Claim, "id" | "item_id" | "claimed_at">;

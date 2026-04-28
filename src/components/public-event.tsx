@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { createClaim, unclaim } from "@/actions/claims";
 import { formatPrice } from "@/lib/utils";
-import type { Event, WishlistItem, PublicClaim } from "@/lib/types";
+import type { Event, WishlistItem, AnonymousClaim } from "@/lib/types";
 
 const MapView = dynamic(() => import("@/components/map-view").then((m) => m.MapView), { ssr: false });
 
@@ -25,9 +25,9 @@ export function PublicEvent({
 }: {
   event: Event;
   items: WishlistItem[];
-  initialClaims: PublicClaim[];
+  initialClaims: AnonymousClaim[];
 }) {
-  const [claims, setClaims] = useState<PublicClaim[]>(initialClaims);
+  const [claims, setClaims] = useState<AnonymousClaim[]>(initialClaims);
   const [open, setOpen] = useState(false);
   const [activeItem, setActiveItem] = useState<WishlistItem | null>(null);
   const [name, setName] = useState("");
@@ -53,12 +53,11 @@ export function PublicEvent({
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "claims" },
         (payload) => {
-          const claim = payload.new as PublicClaim & { guest_token?: string };
+          const claim = payload.new as AnonymousClaim & { guest_token?: string; guest_name?: string; guest_message?: string };
           if (!itemIds.includes(claim.item_id)) return;
           setClaims((prev) => {
             if (prev.some((c) => c.id === claim.id)) return prev;
-            const { guest_token: _t, ...rest } = claim as PublicClaim & { guest_token?: string };
-            return [...prev, rest as PublicClaim];
+            return [...prev, { id: claim.id, item_id: claim.item_id, claimed_at: claim.claimed_at }];
           });
         },
       )
@@ -103,13 +102,7 @@ export function PublicEvent({
         if (prev.some((c) => c.item_id === activeItem.id)) return prev;
         return [
           ...prev,
-          {
-            id: `local-${activeItem.id}`,
-            item_id: activeItem.id,
-            guest_name,
-            guest_message: message.trim() || null,
-            claimed_at: new Date().toISOString(),
-          },
+          { id: `local-${activeItem.id}`, item_id: activeItem.id, claimed_at: new Date().toISOString() },
         ];
       });
       setOpen(false);
@@ -270,8 +263,8 @@ export function PublicEvent({
                       <div className="mt-auto pt-2">
                         {claim ? (
                           <div className="space-y-2">
-                            <div className="rounded-md bg-muted px-3 py-2 text-sm">
-                              Забронировал <b>{claim.guest_name}</b>
+                            <div className="rounded-md bg-muted px-3 py-2 text-sm text-muted-foreground">
+                              Уже забронировано
                             </div>
                             {isMine && (
                               <Button variant="outline" size="sm" onClick={() => onUnclaim(item.id)} className="w-full">
