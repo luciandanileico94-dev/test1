@@ -3,7 +3,6 @@ import { redirect } from "next/navigation"
 import Link from "next/link"
 import { differenceInDays, format } from "date-fns"
 import { ru } from "date-fns/locale"
-import { Calendar, Gift, Camera, Heart, CheckSquare, Moon, ArrowRight } from "lucide-react"
 
 function getWeekStart() {
   const now = new Date()
@@ -11,6 +10,48 @@ function getWeekStart() {
   const diff = now.getDate() - day + (day === 0 ? -6 : 1)
   return new Date(now.getFullYear(), now.getMonth(), diff).toISOString().split("T")[0]
 }
+
+const glassCard = {
+  background: "rgba(255,255,255,.82)",
+  backdropFilter: "blur(8px)",
+  WebkitBackdropFilter: "blur(8px)",
+  border: "1px solid rgba(255,255,255,.65)",
+  borderRadius: 20,
+  padding: "16px 18px",
+  boxShadow: "0 4px 24px rgba(0,0,0,.06)",
+} as const
+
+const cardHeader = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+} as const
+
+const cardTitle = {
+  fontSize: 13,
+  fontWeight: 600,
+  color: "#4a3f44",
+} as const
+
+const linkBtn = {
+  fontSize: 12,
+  color: "hsl(340,75%,55%)",
+  background: "none",
+  border: "none",
+  cursor: "pointer",
+  fontFamily: "'Inter',sans-serif",
+  fontWeight: 500,
+  textDecoration: "none",
+} as const
+
+const quickActions = [
+  { href: "/app/calendar/new", label: "Добавить событие",  emoji: "📅", from: "#eff6ff", to: "#eef2ff", border: "#bfdbfe", color: "#3b82f6" },
+  { href: "/app/wishlist/new", label: "Добавить желание",   emoji: "🎁", from: "#fffbeb", to: "#fff7ed", border: "#fcd34d", color: "#d97706" },
+  { href: "/app/memories/new", label: "Создать альбом",     emoji: "📸", from: "#fdf2f8", to: "#fff0f5", border: "#f9a8d4", color: "#ec4899" },
+  { href: "/app/intimacy/new", label: "Отметить близость",  emoji: "❤️", from: "#fff1f2", to: "#ffe4e6", border: "#fda4af", color: "#f43f5e" },
+  { href: "/app/checkin",      label: "Заполнить check-in", emoji: "✅", from: "#f0fdf4", to: "#ecfdf5", border: "#86efac", color: "#22c55e" },
+  { href: "/app/dates/new",    label: "Идея свидания",      emoji: "💑", from: "#faf5ff", to: "#fdf2f8", border: "#d8b4fe", color: "#a855f7" },
+]
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -27,58 +68,60 @@ export default async function DashboardPage() {
     { data: couple },
     { data: nextEvent },
     { data: recentWishlist },
-    { data: recentAlbums },
     { data: myCheckin },
     { data: partnerCheckin },
-    { data: cycleSettings },
     { data: cycleSupportPrefs },
+    { data: cycleSettings },
   ] = await Promise.all([
     supabase.from("couples").select("*").eq("id", coupleId).single(),
     supabase.from("couple_events").select("*").eq("couple_id", coupleId).eq("status", "planned")
       .gte("event_date", new Date().toISOString().split("T")[0]).order("event_date", { ascending: true }).limit(1).maybeSingle(),
     supabase.from("couple_wishlist_items").select("*").eq("couple_id", coupleId).eq("status", "wanted")
       .order("created_at", { ascending: false }).limit(3),
-    supabase.from("albums").select("*").eq("couple_id", coupleId).order("created_at", { ascending: false }).limit(3),
     supabase.from("check_ins").select("id").eq("couple_id", coupleId).eq("user_id", user.id).gte("week_start", getWeekStart()).maybeSingle(),
     supabase.from("check_ins").select("id").eq("couple_id", coupleId).neq("user_id", user.id).gte("week_start", getWeekStart()).maybeSingle(),
-    supabase.from("cycle_settings").select("*").eq("couple_id", coupleId).neq("user_id", user.id).eq("show_on_partner_dashboard", true).maybeSingle(),
     supabase.from("cycle_support_preferences").select("*").eq("couple_id", coupleId).neq("user_id", user.id).maybeSingle(),
+    supabase.from("cycle_settings").select("*").eq("couple_id", coupleId).neq("user_id", user.id).eq("show_on_partner_dashboard", true).maybeSingle(),
   ])
 
-  const daysTogetherCount = couple?.start_date ? differenceInDays(new Date(), new Date(couple.start_date)) : null
-  const showCycleCard = cycleSettings?.show_on_partner_dashboard
-
-  const quickActions = [
-    { href: "/app/calendar/new", label: "Добавить событие", icon: "📅", color: "from-blue-50 to-indigo-50 border-blue-100 text-blue-600" },
-    { href: "/app/wishlist/new", label: "Добавить желание", icon: "🎁", color: "from-amber-50 to-orange-50 border-amber-100 text-amber-600" },
-    { href: "/app/memories/new", label: "Создать альбом", icon: "📸", color: "from-pink-50 to-rose-50 border-pink-100 text-pink-600" },
-    { href: "/app/intimacy/new", label: "Отметить близость", icon: "❤️", color: "from-rose-50 to-red-50 border-rose-100 text-rose-600" },
-    { href: "/app/checkin", label: "Заполнить check-in", icon: "✅", color: "from-green-50 to-teal-50 border-green-100 text-green-600" },
-    { href: "/app/dates/new", label: "Идея свидания", icon: "💑", color: "from-purple-50 to-pink-50 border-purple-100 text-purple-600" },
-  ]
+  const daysCount = couple?.start_date ? differenceInDays(new Date(), new Date(couple.start_date)) : null
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6 space-y-5">
+    <div style={{ maxWidth: 640, margin: "0 auto", padding: "20px 16px", display: "flex", flexDirection: "column", gap: 14 }}>
 
-      {/* Couple header */}
-      <div className="bg-gradient-to-br from-rose-500 to-pink-600 rounded-3xl p-6 text-white shadow-rose">
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center text-3xl border border-white/30">
+      {/* Couple hero card */}
+      <div style={{
+        background: "linear-gradient(135deg,hsl(340,75%,55%),hsl(325,65%,52%))",
+        borderRadius: 24,
+        padding: "20px 22px",
+        color: "#fff",
+        boxShadow: "0 8px 32px rgba(233,30,99,.2)",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          <div style={{
+            width: 56, height: 56, borderRadius: 16,
+            background: "rgba(255,255,255,.2)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 26, border: "1px solid rgba(255,255,255,.3)", flexShrink: 0,
+          }}>
             {couple?.photo_url
-              ? <img src={couple.photo_url} alt="" className="w-16 h-16 rounded-2xl object-cover" />
+              ? <img src={couple.photo_url} alt="" style={{ width: 56, height: 56, borderRadius: 16, objectFit: "cover" }} />
               : "💑"}
           </div>
-          <div className="flex-1">
-            <h1 className="text-xl font-bold">{couple?.name ?? "Наша пара"}</h1>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 700, fontSize: 18, color: "#fff" }}>{couple?.name ?? "Наша пара"}</div>
             {couple?.start_date && (
-              <p className="text-rose-100 text-sm mt-0.5">
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,.75)", marginTop: 2 }}>
                 С {format(new Date(couple.start_date), "d MMMM yyyy", { locale: ru })}
-              </p>
+              </div>
             )}
-            {daysTogetherCount !== null && (
-              <div className="mt-2 inline-flex items-center gap-1.5 bg-white/20 rounded-full px-3 py-1 text-sm font-semibold">
-                <span>💕</span>
-                <span>{daysTogetherCount} дней вместе</span>
+            {daysCount !== null && (
+              <div style={{
+                marginTop: 8, display: "inline-block",
+                background: "rgba(255,255,255,.2)", borderRadius: 20,
+                padding: "4px 12px", fontSize: 12, fontWeight: 600,
+              }}>
+                💕 {daysCount} дней вместе
               </div>
             )}
           </div>
@@ -86,47 +129,59 @@ export default async function DashboardPage() {
       </div>
 
       {/* Cycle support card */}
-      {showCycleCard && (
-        <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-5 border border-purple-100 shadow-soft">
-          <div className="flex items-center gap-2 mb-3">
-            <Moon size={16} className="text-purple-500" />
-            <h2 className="text-sm font-semibold text-purple-700">Как поддержать сегодня</h2>
+      {cycleSettings && (
+        <div style={{
+          ...glassCard,
+          background: "linear-gradient(135deg,#faf5ff,#fdf2f8)",
+          border: "1px solid #e9d5ff",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
+            <span style={{ fontSize: 14 }}>🌙</span>
+            <span style={cardTitle}>Как поддержать сегодня</span>
           </div>
           {cycleSupportPrefs?.custom_partner_message && (
-            <p className="text-sm text-purple-800 italic mb-3 bg-white/60 rounded-xl px-3 py-2 border border-purple-100">
+            <p style={{ fontSize: 13, color: "#6b21a8", fontStyle: "italic", marginBottom: 10, background: "rgba(255,255,255,.6)", borderRadius: 12, padding: "8px 12px", border: "1px solid #e9d5ff" }}>
               &ldquo;{cycleSupportPrefs.custom_partner_message}&rdquo;
             </p>
           )}
           {cycleSupportPrefs?.partner_should_do && (
-            <div className="text-xs text-gray-600 mb-1.5">
-              <span className="font-semibold text-green-600">✓ Что поможет: </span>{cycleSupportPrefs.partner_should_do}
+            <div style={{ fontSize: 12, color: "#555", marginBottom: 6 }}>
+              <span style={{ fontWeight: 600, color: "#16a34a" }}>✓ Что поможет: </span>{cycleSupportPrefs.partner_should_do}
             </div>
           )}
           {cycleSupportPrefs?.partner_should_avoid && (
-            <div className="text-xs text-gray-600">
-              <span className="font-semibold text-red-400">✗ Лучше избегать: </span>{cycleSupportPrefs.partner_should_avoid}
+            <div style={{ fontSize: 12, color: "#555" }}>
+              <span style={{ fontWeight: 600, color: "#f43f5e" }}>✗ Лучше избегать: </span>{cycleSupportPrefs.partner_should_avoid}
             </div>
           )}
-          <p className="text-xs text-purple-300 mt-3">Она сама выбрала эти рекомендации</p>
+          <p style={{ fontSize: 10, color: "#c084fc", marginTop: 10 }}>Она сама выбрала эти рекомендации</p>
         </div>
       )}
 
-      {/* Check-in */}
-      <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-5 shadow-soft border border-white/60">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <CheckSquare size={16} className="text-rose-400" />
-            <h2 className="text-sm font-semibold text-gray-700">Check-in этой недели</h2>
+      {/* Check-in status */}
+      <div style={glassCard}>
+        <div style={cardHeader}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <span style={{ fontSize: 14 }}>✅</span>
+            <span style={cardTitle}>Check-in этой недели</span>
           </div>
-          <Link href="/app/checkin" className="text-xs text-rose-400 hover:text-rose-600 flex items-center gap-1">
-            Перейти <ArrowRight size={12} />
-          </Link>
+          <Link href="/app/checkin" style={linkBtn}>Перейти →</Link>
         </div>
-        <div className="grid grid-cols-2 gap-2">
-          <div className={`rounded-xl py-2.5 text-center text-xs font-medium border ${myCheckin ? "bg-green-50 text-green-600 border-green-100" : "bg-gray-50 text-gray-400 border-gray-100"}`}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 10 }}>
+          <div style={{
+            borderRadius: 12, padding: "8px 0", textAlign: "center", fontSize: 12, fontWeight: 600,
+            ...(myCheckin
+              ? { background: "hsl(152,60%,93%)", color: "hsl(152,60%,30%)", border: "1px solid hsl(152,50%,82%)" }
+              : { background: "hsl(340,20%,95%)", color: "#aaa", border: "1px solid hsl(340,20%,88%)" }),
+          }}>
             {myCheckin ? "✓ Вы заполнили" : "Вы не заполнили"}
           </div>
-          <div className={`rounded-xl py-2.5 text-center text-xs font-medium border ${partnerCheckin ? "bg-green-50 text-green-600 border-green-100" : "bg-gray-50 text-gray-400 border-gray-100"}`}>
+          <div style={{
+            borderRadius: 12, padding: "8px 0", textAlign: "center", fontSize: 12, fontWeight: 600,
+            ...(partnerCheckin
+              ? { background: "hsl(152,60%,93%)", color: "hsl(152,60%,30%)", border: "1px solid hsl(152,50%,82%)" }
+              : { background: "hsl(340,20%,95%)", color: "#aaa", border: "1px solid hsl(340,20%,88%)" }),
+          }}>
             {partnerCheckin ? "✓ Партнёр заполнил" : "Ожидаем партнёра"}
           </div>
         </div>
@@ -134,78 +189,75 @@ export default async function DashboardPage() {
 
       {/* Next event */}
       {nextEvent && (
-        <Link href={`/app/calendar/${nextEvent.id}`} className="block bg-white/80 backdrop-blur-sm rounded-2xl p-5 shadow-soft border border-white/60 hover:shadow-md transition-all hover:-translate-y-0.5">
-          <div className="flex items-center justify-between mb-1">
-            <div className="flex items-center gap-2">
-              <Calendar size={16} className="text-rose-400" />
-              <h2 className="text-sm font-semibold text-gray-700">Ближайшее событие</h2>
+        <Link href={`/app/calendar/${nextEvent.id}`} style={{
+          ...glassCard,
+          display: "block",
+          textDecoration: "none",
+          cursor: "pointer",
+        }}>
+          <div style={cardHeader}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <span style={{ fontSize: 14 }}>📅</span>
+              <span style={cardTitle}>Ближайшее событие</span>
             </div>
-            <ArrowRight size={14} className="text-gray-300" />
+            <span style={{ color: "#ccc", fontSize: 16 }}>›</span>
           </div>
-          <p className="font-semibold text-gray-800 mt-2">{nextEvent.title}</p>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <div style={{ fontWeight: 600, fontSize: 15, color: "#1e1217", marginTop: 8 }}>{nextEvent.title}</div>
+          <div style={{ fontSize: 12, color: "#8a7880", marginTop: 3 }}>
             {format(new Date(nextEvent.event_date), "d MMMM", { locale: ru })}
             {nextEvent.event_time && ` · ${nextEvent.event_time.slice(0, 5)}`}
             {nextEvent.location && ` · 📍 ${nextEvent.location}`}
-          </p>
+          </div>
         </Link>
       )}
 
       {/* Recent wishlist */}
       {recentWishlist && recentWishlist.length > 0 && (
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-5 shadow-soft border border-white/60">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <Gift size={16} className="text-rose-400" />
-              <h2 className="text-sm font-semibold text-gray-700">Последние желания</h2>
+        <div style={glassCard}>
+          <div style={cardHeader}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <span style={{ fontSize: 14 }}>🎁</span>
+              <span style={cardTitle}>Последние желания</span>
             </div>
-            <Link href="/app/wishlist" className="text-xs text-rose-400 hover:text-rose-600 flex items-center gap-1">
-              Все <ArrowRight size={12} />
-            </Link>
+            <Link href="/app/wishlist" style={linkBtn}>Все →</Link>
           </div>
-          <div className="space-y-2">
-            {(recentWishlist as { id: string; title: string; priority: string }[]).map((item) => (
-              <div key={item.id} className="flex items-center justify-between py-1.5 border-b border-gray-50 last:border-0">
-                <span className="text-sm text-gray-700">{item.title}</span>
-                <span className="text-xs">{item.priority === "high" ? "🔴" : item.priority === "medium" ? "🟡" : "🟢"}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Albums */}
-      {recentAlbums && recentAlbums.length > 0 && (
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-5 shadow-soft border border-white/60">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <Camera size={16} className="text-rose-400" />
-              <h2 className="text-sm font-semibold text-gray-700">Воспоминания</h2>
+          {(recentWishlist as { id: string; title: string; priority: string }[]).map((item, i) => (
+            <div key={item.id} style={{
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+              padding: "8px 0",
+              borderBottom: i < recentWishlist.length - 1 ? "1px solid hsl(340,20%,96%)" : "none",
+            }}>
+              <span style={{ fontSize: 13, color: "#333" }}>{item.title}</span>
+              <span style={{ fontSize: 14 }}>
+                {item.priority === "high" ? "🔴" : item.priority === "medium" ? "🟡" : "🟢"}
+              </span>
             </div>
-            <Link href="/app/memories" className="text-xs text-rose-400 hover:text-rose-600 flex items-center gap-1">
-              Все <ArrowRight size={12} />
-            </Link>
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            {(recentAlbums as { id: string; title: string; cover_image_url: string | null }[]).map((album) => (
-              <Link key={album.id} href={`/app/memories/${album.id}`} className="aspect-square rounded-xl bg-gradient-to-br from-rose-50 to-pink-50 border border-rose-100 flex items-center justify-center hover:shadow-sm transition-all overflow-hidden">
-                {album.cover_image_url
-                  ? <img src={album.cover_image_url} alt={album.title} className="w-full h-full object-cover" />
-                  : <span className="text-2xl">📁</span>}
-              </Link>
-            ))}
-          </div>
+          ))}
         </div>
       )}
 
       {/* Quick actions */}
-      <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-5 shadow-soft border border-white/60">
-        <h2 className="text-sm font-semibold text-gray-700 mb-3">Быстрые действия</h2>
-        <div className="grid grid-cols-3 gap-2">
-          {quickActions.map(({ href, label, icon, color }) => (
-            <Link key={href} href={href} className={`flex flex-col items-center gap-1.5 p-3 rounded-xl bg-gradient-to-br border transition-all hover:-translate-y-0.5 hover:shadow-sm text-center ${color}`}>
-              <span className="text-xl">{icon}</span>
-              <span className="text-[10px] font-medium leading-tight">{label}</span>
+      <div style={glassCard}>
+        <div style={{ fontSize: 12, fontWeight: 600, color: "#bbb", letterSpacing: ".05em", textTransform: "uppercase", marginBottom: 10 }}>
+          Быстрые действия
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8 }}>
+          {quickActions.map(a => (
+            <Link
+              key={a.href}
+              href={a.href}
+              style={{
+                display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
+                padding: "12px 6px", borderRadius: 14, cursor: "pointer",
+                fontFamily: "'Inter',sans-serif", textDecoration: "none",
+                background: `linear-gradient(135deg,${a.from},${a.to})`,
+                border: `1px solid ${a.border}`,
+                color: a.color,
+                transition: "all .15s",
+              }}
+            >
+              <span style={{ fontSize: 20 }}>{a.emoji}</span>
+              <span style={{ fontSize: 10, fontWeight: 600, lineHeight: 1.3, textAlign: "center" }}>{a.label}</span>
             </Link>
           ))}
         </div>

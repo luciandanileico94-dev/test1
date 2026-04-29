@@ -14,10 +14,24 @@ export default function SettingsClient() {
   }
 
   return (
-    <div className="bg-white rounded-2xl p-5 shadow-sm border border-rose-100">
+    <div style={{
+      background: "rgba(255,255,255,.82)",
+      backdropFilter: "blur(8px)",
+      WebkitBackdropFilter: "blur(8px)",
+      border: "1px solid rgba(255,255,255,.65)",
+      borderRadius: 20,
+      padding: "20px 22px",
+      boxShadow: "0 4px 24px rgba(0,0,0,.06)",
+    }}>
       <button
         onClick={onLogout}
-        className="w-full py-2.5 border border-red-200 text-red-500 rounded-xl text-sm font-medium hover:bg-red-50 transition-colors"
+        style={{
+          width: "100%", padding: "11px 0", borderRadius: 12,
+          border: "1.5px solid hsl(0,72%,80%)", background: "transparent",
+          color: "hsl(0,72%,51%)", fontSize: 13, fontWeight: 600,
+          cursor: "pointer", fontFamily: "'Inter', sans-serif",
+          transition: "background .15s",
+        }}
       >
         Выйти из аккаунта
       </button>

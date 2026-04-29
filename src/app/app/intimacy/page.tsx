@@ -3,7 +3,20 @@ import { redirect } from "next/navigation"
 import Link from "next/link"
 import { format } from "date-fns"
 import { ru } from "date-fns/locale"
-import { Plus, Lock } from "lucide-react"
+
+const moodEmoji: Record<string, string> = {
+  romantic: "🌹", playful: "😄", tender: "🥰", passionate: "🔥", calm: "😌", tired: "😴",
+}
+
+const glassCard = {
+  background: "rgba(255,255,255,.82)",
+  backdropFilter: "blur(8px)",
+  WebkitBackdropFilter: "blur(8px)",
+  border: "1px solid rgba(255,255,255,.65)",
+  borderRadius: 20,
+  padding: "16px 18px",
+  boxShadow: "0 4px 24px rgba(0,0,0,.06)",
+} as const
 
 export default async function IntimacyPage() {
   const supabase = await createClient()
@@ -14,65 +27,91 @@ export default async function IntimacyPage() {
   if (!member) redirect("/onboarding")
 
   const { data: records } = await supabase
-    .from("intimacy_records")
-    .select("*")
-    .eq("couple_id", member.couple_id)
-    .order("date", { ascending: false })
-    .limit(30)
-
-  const moodEmoji: Record<string, string> = {
-    romantic: "🌹", playful: "😄", tender: "🥰", passionate: "🔥", calm: "😌", tired: "😴",
-  }
+    .from("intimacy_records").select("*").eq("couple_id", member.couple_id)
+    .order("date", { ascending: false }).limit(30)
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6">
-      <div className="flex items-center justify-between mb-6">
+    <div style={{ maxWidth: 640, margin: "0 auto", padding: "20px 16px", display: "flex", flexDirection: "column", gap: 16 }}>
+
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Близость</h1>
-          <p className="text-xs text-gray-400 flex items-center gap-1 mt-0.5"><Lock size={12} /> Приватный раздел</p>
+          <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 600, color: "#1e1217", margin: 0 }}>
+            Близость
+          </h1>
+          <p style={{ fontSize: 11, color: "#bbb", marginTop: 3, display: "flex", alignItems: "center", gap: 4 }}>
+            🔒 Приватный раздел
+          </p>
         </div>
-        <Link href="/app/intimacy/new" className="flex items-center gap-1.5 px-4 py-2 bg-rose-500 text-white rounded-xl text-sm font-medium hover:bg-rose-600 transition-colors">
-          <Plus size={16} /> Отметить
+        <Link href="/app/intimacy/new" style={{
+          padding: "9px 16px", borderRadius: 12,
+          background: "linear-gradient(135deg,hsl(340,75%,55%),hsl(325,65%,52%))",
+          color: "#fff", fontSize: 13, fontWeight: 600, textDecoration: "none",
+          boxShadow: "0 4px 16px rgba(233,30,99,.25)",
+        }}>
+          + Отметить
         </Link>
       </div>
 
-      <div className="bg-rose-50 rounded-2xl p-4 mb-6 text-sm text-rose-700 border border-rose-100">
-        Записи с видимостью &quot;только для меня&quot; не видны партнёру. Общие записи видны обоим.
+      {/* Privacy notice */}
+      <div style={{
+        ...glassCard,
+        background: "linear-gradient(135deg,hsl(340,100%,97%),#fff0fb)",
+        border: "1px solid hsl(340,60%,90%)",
+        fontSize: 12, color: "hsl(340,75%,45%)", padding: "12px 16px",
+      }}>
+        Записи с видимостью «только для меня» не видны партнёру. Общие записи видны обоим.
       </div>
 
       {!records || records.length === 0 ? (
-        <div className="text-center py-16 text-gray-400">
-          <div className="text-4xl mb-3">❤️</div>
-          <p className="font-medium">Записей пока нет</p>
-          <Link href="/app/intimacy/new" className="inline-block mt-4 px-6 py-2 bg-rose-500 text-white rounded-xl text-sm font-medium hover:bg-rose-600 transition-colors">
+        <div style={{ ...glassCard, textAlign: "center", padding: "48px 24px" }}>
+          <div style={{ fontSize: 48, marginBottom: 12 }}>❤️</div>
+          <p style={{ fontWeight: 600, color: "#4a3f44", fontSize: 15 }}>Записей пока нет</p>
+          <Link href="/app/intimacy/new" style={{
+            display: "inline-block", marginTop: 16, padding: "10px 24px", borderRadius: 12,
+            background: "linear-gradient(135deg,hsl(340,75%,55%),hsl(325,65%,52%))",
+            color: "#fff", fontSize: 13, fontWeight: 600, textDecoration: "none",
+          }}>
             Добавить запись
           </Link>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {records.map(record => (
-            <div key={record.id} className="bg-white rounded-2xl p-4 shadow-sm border border-rose-100">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">{record.mood ? (moodEmoji[record.mood] ?? "💕") : "💕"}</span>
-                  <span className="font-medium text-gray-800">{format(new Date(record.date), "d MMMM yyyy", { locale: ru })}</span>
+            <div key={record.id} style={glassCard}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <div style={{
+                    width: 40, height: 40, borderRadius: 12,
+                    background: "hsl(340,100%,97%)",
+                    display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20,
+                  }}>
+                    {record.mood ? (moodEmoji[record.mood] ?? "💕") : "💕"}
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: 14, color: "#1e1217" }}>
+                      {format(new Date(record.date), "d MMMM yyyy", { locale: ru })}
+                    </div>
+                    {record.notes && record.created_by === user.id && (
+                      <div style={{ fontSize: 12, color: "#8a7880", marginTop: 2 }}>{record.notes}</div>
+                    )}
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
                   {record.rating && (
-                    <div className="flex gap-0.5">
+                    <div style={{ display: "flex", gap: 2 }}>
                       {Array.from({ length: 5 }).map((_, i) => (
-                        <span key={i} className={`text-xs ${i < record.rating ? "text-rose-400" : "text-gray-200"}`}>★</span>
+                        <span key={i} style={{ fontSize: 12, color: i < record.rating ? "hsl(340,75%,55%)" : "#e5e7eb" }}>★</span>
                       ))}
                     </div>
                   )}
                   {record.visibility === "private" && (
-                    <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full flex items-center gap-1"><Lock size={10} />Только я</span>
+                    <span style={{ fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 20, background: "hsl(340,20%,95%)", color: "#aaa" }}>
+                      🔒 Только я
+                    </span>
                   )}
                 </div>
               </div>
-              {record.notes && record.created_by === user.id && (
-                <p className="text-sm text-gray-500 mt-2 line-clamp-2">{record.notes}</p>
-              )}
             </div>
           ))}
         </div>

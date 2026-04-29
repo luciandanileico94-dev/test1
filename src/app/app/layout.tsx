@@ -17,31 +17,70 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   if (!member) redirect("/onboarding")
 
   return (
-    <div className="min-h-screen" style={{ background: "linear-gradient(160deg, #fff8fa 0%, #fdf4ff 100%)" }}>
-      <div className="flex h-screen overflow-hidden">
+    <div style={{ minHeight: "100vh", background: "linear-gradient(160deg, #fff8fa 0%, #fdf4ff 100%)" }}>
+      <div style={{ display: "flex", height: "100vh", overflow: "hidden" }}>
 
-        {/* Desktop sidebar */}
-        <aside className="hidden md:flex w-60 flex-col bg-white/80 backdrop-blur-sm border-r border-rose-100/50 shrink-0 shadow-sm">
-          <div className="px-5 py-5 border-b border-rose-50">
-            <Link href="/app/dashboard" className="flex items-center gap-2.5">
-              <span className="text-2xl">💝</span>
-              <span className="font-display text-xl font-semibold text-rose-500">Вместе</span>
+        {/* Desktop sidebar — exact AppNav.jsx spec */}
+        <aside className="hidden md:flex" style={{
+          width: 230,
+          flexShrink: 0,
+          flexDirection: "column",
+          background: "rgba(255,255,255,0.85)",
+          backdropFilter: "blur(12px)",
+          WebkitBackdropFilter: "blur(12px)",
+          borderRight: "1px solid hsl(340,30%,92%)",
+          boxShadow: "1px 0 0 rgba(233,30,99,.04)",
+        }}>
+          {/* Logo */}
+          <div style={{
+            padding: "18px 18px 14px",
+            borderBottom: "1px solid hsl(340,20%,95%)",
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+          }}>
+            <Link href="/app/dashboard" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
+              <span style={{ fontSize: 24 }}>💝</span>
+              <span style={{
+                fontFamily: "'Playfair Display', serif",
+                fontSize: 20,
+                fontWeight: 600,
+                color: "hsl(340,75%,48%)",
+              }}>Вместе</span>
             </Link>
           </div>
+
           <AppNav variant="sidebar" />
-          <div className="px-4 py-4 border-t border-rose-50">
-            <div className="text-xs text-gray-400 text-center">Приватно · Только для вас</div>
+
+          <div style={{
+            padding: "12px 14px",
+            borderTop: "1px solid hsl(340,20%,95%)",
+            fontSize: 10,
+            color: "#bbb",
+            textAlign: "center",
+          }}>
+            Приватно · Только для вас
           </div>
         </aside>
 
         {/* Main content */}
-        <main className="flex-1 overflow-y-auto pb-24 md:pb-0">
+        <main style={{ flex: 1, overflowY: "auto", paddingBottom: 80 }} className="md:pb-0">
           {children}
         </main>
       </div>
 
       {/* Mobile bottom nav */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-rose-100/50 z-50 shadow-lg">
+      <div className="md:hidden" style={{
+        position: "fixed",
+        bottom: 0,
+        left: 0,
+        right: 0,
+        background: "rgba(255,255,255,0.92)",
+        backdropFilter: "blur(16px)",
+        WebkitBackdropFilter: "blur(16px)",
+        borderTop: "1px solid hsl(340,30%,92%)",
+        zIndex: 50,
+      }}>
         <AppNav variant="bottom" />
       </div>
     </div>

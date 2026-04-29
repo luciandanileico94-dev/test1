@@ -3,7 +3,16 @@ import { redirect } from "next/navigation"
 import Link from "next/link"
 import { format } from "date-fns"
 import { ru } from "date-fns/locale"
-import { Plus } from "lucide-react"
+
+const glassCard = {
+  background: "rgba(255,255,255,.82)",
+  backdropFilter: "blur(8px)",
+  WebkitBackdropFilter: "blur(8px)",
+  border: "1px solid rgba(255,255,255,.65)",
+  borderRadius: 20,
+  padding: "16px 18px",
+  boxShadow: "0 4px 24px rgba(0,0,0,.06)",
+} as const
 
 export default async function MemoriesPage() {
   const supabase = await createClient()
@@ -14,44 +23,74 @@ export default async function MemoriesPage() {
   if (!member) redirect("/onboarding")
 
   const { data: albums } = await supabase
-    .from("albums")
-    .select("*, media(count)")
-    .eq("couple_id", member.couple_id)
+    .from("albums").select("*, media(count)").eq("couple_id", member.couple_id)
     .order("created_at", { ascending: false })
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Воспоминания</h1>
-        <Link href="/app/memories/new" className="flex items-center gap-1.5 px-4 py-2 bg-rose-500 text-white rounded-xl text-sm font-medium hover:bg-rose-600 transition-colors">
-          <Plus size={16} /> Создать альбом
+    <div style={{ maxWidth: 640, margin: "0 auto", padding: "20px 16px", display: "flex", flexDirection: "column", gap: 16 }}>
+
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 600, color: "#1e1217", margin: 0 }}>
+          Воспоминания
+        </h1>
+        <Link href="/app/memories/new" style={{
+          padding: "9px 16px", borderRadius: 12,
+          background: "linear-gradient(135deg,hsl(340,75%,55%),hsl(325,65%,52%))",
+          color: "#fff", fontSize: 13, fontWeight: 600, textDecoration: "none",
+          boxShadow: "0 4px 16px rgba(233,30,99,.25)",
+        }}>
+          + Создать альбом
         </Link>
       </div>
 
       {!albums || albums.length === 0 ? (
-        <div className="text-center py-16 text-gray-400">
-          <div className="text-4xl mb-3">📸</div>
-          <p className="font-medium">Воспоминаний пока нет</p>
-          <p className="text-sm mt-1">Создайте первый альбом</p>
-          <Link href="/app/memories/new" className="inline-block mt-4 px-6 py-2 bg-rose-500 text-white rounded-xl text-sm font-medium hover:bg-rose-600 transition-colors">
+        <div style={{ ...glassCard, textAlign: "center", padding: "48px 24px" }}>
+          <div style={{ fontSize: 48, marginBottom: 12 }}>📸</div>
+          <p style={{ fontWeight: 600, color: "#4a3f44", fontSize: 15 }}>Воспоминаний пока нет</p>
+          <p style={{ fontSize: 13, color: "#aaa", marginTop: 4 }}>Создайте первый альбом и добавьте фото</p>
+          <Link href="/app/memories/new" style={{
+            display: "inline-block", marginTop: 16, padding: "10px 24px", borderRadius: 12,
+            background: "linear-gradient(135deg,hsl(340,75%,55%),hsl(325,65%,52%))",
+            color: "#fff", fontSize: 13, fontWeight: 600, textDecoration: "none",
+          }}>
             Создать альбом
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-4">
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
           {albums.map(album => (
-            <Link key={album.id} href={`/app/memories/${album.id}`} className="block bg-white rounded-2xl shadow-sm border border-rose-100 overflow-hidden hover:shadow-md transition-shadow">
-              <div className="aspect-video bg-rose-50 flex items-center justify-center">
+            <Link key={album.id} href={`/app/memories/${album.id}`} style={{
+              display: "block", textDecoration: "none",
+              background: "rgba(255,255,255,.82)",
+              backdropFilter: "blur(8px)",
+              border: "1px solid rgba(255,255,255,.65)",
+              borderRadius: 20,
+              overflow: "hidden",
+              boxShadow: "0 4px 24px rgba(0,0,0,.06)",
+            }}>
+              {/* Cover */}
+              <div style={{
+                aspectRatio: "16/10", overflow: "hidden",
+                background: "linear-gradient(135deg,hsl(340,100%,97%),#fff0fb)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
                 {album.cover_image_url ? (
-                  <img src={album.cover_image_url} alt={album.title} className="w-full h-full object-cover" />
+                  <img src={album.cover_image_url} alt={album.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 ) : (
-                  <span className="text-4xl">📁</span>
+                  <span style={{ fontSize: 40 }}>📁</span>
                 )}
               </div>
-              <div className="p-3">
-                <p className="font-medium text-gray-800 text-sm">{album.title}</p>
-                {album.description && <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{album.description}</p>}
-                <p className="text-xs text-gray-400 mt-1">{format(new Date(album.created_at), "d MMMM yyyy", { locale: ru })}</p>
+              <div style={{ padding: "12px 14px" }}>
+                <p style={{ fontWeight: 600, fontSize: 13, color: "#1e1217", margin: 0 }}>{album.title}</p>
+                {album.description && (
+                  <p style={{ fontSize: 11, color: "#8a7880", marginTop: 2, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 1, WebkitBoxOrient: "vertical" }}>
+                    {album.description}
+                  </p>
+                )}
+                <p style={{ fontSize: 11, color: "#bbb", marginTop: 4 }}>
+                  {format(new Date(album.created_at), "d MMMM yyyy", { locale: ru })}
+                </p>
               </div>
             </Link>
           ))}

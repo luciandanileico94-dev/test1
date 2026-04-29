@@ -1,20 +1,26 @@
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import Link from "next/link"
-import { format, addDays } from "date-fns"
+import { format } from "date-fns"
 import { ru } from "date-fns/locale"
-import { Settings } from "lucide-react"
 
-const phaseLabels: Record<string, string> = {
-  menstruation: "Менструация", follicular: "Фолликулярная", ovulation: "Овуляция", luteal: "Лютеиновая", unknown: "Неизвестно",
+const phaseConfig: Record<string, { label: string; bg: string; color: string; border: string }> = {
+  menstruation: { label: "Менструация",    bg: "#fff1f2", color: "#f43f5e", border: "#fda4af" },
+  follicular:   { label: "Фолликулярная", bg: "#f0fdf4", color: "#16a34a", border: "#86efac" },
+  ovulation:    { label: "Овуляция",       bg: "#fffbeb", color: "#d97706", border: "#fcd34d" },
+  luteal:       { label: "Лютеиновая",     bg: "#faf5ff", color: "#9333ea", border: "#d8b4fe" },
+  unknown:      { label: "Неизвестно",     bg: "hsl(340,20%,95%)", color: "#aaa", border: "hsl(340,20%,88%)" },
 }
-const phaseColors: Record<string, string> = {
-  menstruation: "bg-red-50 text-red-700 border-red-100",
-  follicular: "bg-green-50 text-green-700 border-green-100",
-  ovulation: "bg-yellow-50 text-yellow-700 border-yellow-100",
-  luteal: "bg-purple-50 text-purple-700 border-purple-100",
-  unknown: "bg-gray-50 text-gray-600 border-gray-100",
-}
+
+const glassCard = {
+  background: "rgba(255,255,255,.82)",
+  backdropFilter: "blur(8px)",
+  WebkitBackdropFilter: "blur(8px)",
+  border: "1px solid rgba(255,255,255,.65)",
+  borderRadius: 20,
+  padding: "20px 22px",
+  boxShadow: "0 4px 24px rgba(0,0,0,.06)",
+} as const
 
 export default async function CyclePage() {
   const supabase = await createClient()
@@ -25,43 +31,38 @@ export default async function CyclePage() {
   if (!member) redirect("/onboarding")
 
   const { data: settings } = await supabase
-    .from("cycle_settings")
-    .select("*")
-    .eq("couple_id", member.couple_id)
-    .eq("user_id", user.id)
-    .maybeSingle()
+    .from("cycle_settings").select("*").eq("couple_id", member.couple_id).eq("user_id", user.id).maybeSingle()
 
   const today = new Date().toISOString().split("T")[0]
   const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
 
-  const { data: recentDays } = await supabase
-    .from("cycle_days")
-    .select("*")
-    .eq("couple_id", member.couple_id)
-    .eq("user_id", user.id)
-    .gte("date", weekAgo)
-    .order("date", { ascending: false })
-
-  const { data: todayRecord } = await supabase
-    .from("cycle_days")
-    .select("*")
-    .eq("couple_id", member.couple_id)
-    .eq("user_id", user.id)
-    .eq("date", today)
-    .maybeSingle()
+  const [{ data: recentDays }, { data: todayRecord }] = await Promise.all([
+    supabase.from("cycle_days").select("*")
+      .eq("couple_id", member.couple_id).eq("user_id", user.id).gte("date", weekAgo)
+      .order("date", { ascending: false }),
+    supabase.from("cycle_days").select("*")
+      .eq("couple_id", member.couple_id).eq("user_id", user.id).eq("date", today).maybeSingle(),
+  ])
 
   if (!settings?.is_enabled) {
     return (
-      <div className="max-w-lg mx-auto px-4 py-6">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-gray-800">Календарь цикла</h1>
-          <Link href="/app/cycle/settings" className="text-gray-400 hover:text-gray-600"><Settings size={20} /></Link>
+      <div style={{ maxWidth: 520, margin: "0 auto", padding: "20px 16px", display: "flex", flexDirection: "column", gap: 16 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 600, color: "#1e1217", margin: 0 }}>
+            Календарь цикла
+          </h1>
+          <Link href="/app/cycle/settings" style={{ fontSize: 18, textDecoration: "none" }}>⚙️</Link>
         </div>
-        <div className="bg-white rounded-2xl p-8 text-center border border-rose-100">
-          <div className="text-4xl mb-3">🌸</div>
-          <h2 className="font-semibold text-gray-700 mb-2">Трекер цикла</h2>
-          <p className="text-sm text-gray-500 mb-5">Отслеживайте цикл и настройте что видит партнёр</p>
-          <Link href="/app/cycle/settings" className="inline-block px-6 py-2.5 bg-rose-500 text-white rounded-xl text-sm font-medium hover:bg-rose-600 transition-colors">
+        <div style={{ ...glassCard, textAlign: "center", padding: "48px 24px" }}>
+          <div style={{ fontSize: 48, marginBottom: 12 }}>🌸</div>
+          <p style={{ fontWeight: 600, color: "#4a3f44", fontSize: 15, marginBottom: 6 }}>Трекер цикла</p>
+          <p style={{ fontSize: 13, color: "#aaa", marginBottom: 20 }}>Отслеживайте цикл и настройте что видит партнёр</p>
+          <Link href="/app/cycle/settings" style={{
+            display: "inline-block", padding: "11px 28px", borderRadius: 12,
+            background: "linear-gradient(135deg,hsl(340,75%,55%),hsl(325,65%,52%))",
+            color: "#fff", fontSize: 13, fontWeight: 600, textDecoration: "none",
+            boxShadow: "0 4px 16px rgba(233,30,99,.25)",
+          }}>
             Включить и настроить
           </Link>
         </div>
@@ -70,36 +71,56 @@ export default async function CyclePage() {
   }
 
   return (
-    <div className="max-w-lg mx-auto px-4 py-6 space-y-5">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-800">Мой цикл</h1>
-        <Link href="/app/cycle/settings" className="text-gray-400 hover:text-gray-600"><Settings size={20} /></Link>
+    <div style={{ maxWidth: 520, margin: "0 auto", padding: "20px 16px", display: "flex", flexDirection: "column", gap: 16 }}>
+
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 600, color: "#1e1217", margin: 0 }}>
+          Мой цикл
+        </h1>
+        <Link href="/app/cycle/settings" style={{ fontSize: 18, textDecoration: "none" }}>⚙️</Link>
       </div>
 
       {/* Today */}
-      <div className="bg-white rounded-2xl p-5 shadow-sm border border-rose-100">
-        <h2 className="text-sm font-semibold text-gray-600 mb-3">Сегодня — {format(new Date(), "d MMMM", { locale: ru })}</h2>
+      <div style={glassCard}>
+        <div style={{ fontSize: 12, fontWeight: 600, color: "#8a7880", marginBottom: 12 }}>
+          Сегодня — {format(new Date(), "d MMMM", { locale: ru })}
+        </div>
         {todayRecord ? (
           <div>
             {todayRecord.phase && (
-              <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium border ${phaseColors[todayRecord.phase]}`}>
-                {phaseLabels[todayRecord.phase]}
-              </span>
+              <div style={{
+                display: "inline-block", padding: "4px 12px", borderRadius: 20, fontSize: 12, fontWeight: 600,
+                background: phaseConfig[todayRecord.phase]?.bg ?? "hsl(340,20%,95%)",
+                color: phaseConfig[todayRecord.phase]?.color ?? "#aaa",
+                border: `1px solid ${phaseConfig[todayRecord.phase]?.border ?? "hsl(340,20%,88%)"}`,
+              }}>
+                {phaseConfig[todayRecord.phase]?.label ?? todayRecord.phase}
+              </div>
             )}
-            <div className="grid grid-cols-2 gap-3 mt-3">
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 12 }}>
               {todayRecord.energy_level && (
-                <div className="text-sm"><span className="text-gray-500">Энергия: </span>{"⚡".repeat(todayRecord.energy_level)}</div>
+                <div style={{ fontSize: 12, color: "#8a7880" }}>
+                  <span>Энергия: </span>{"⚡".repeat(todayRecord.energy_level)}
+                </div>
               )}
               {todayRecord.pain_level && (
-                <div className="text-sm"><span className="text-gray-500">Боль: </span>{"😣".repeat(todayRecord.pain_level)}</div>
+                <div style={{ fontSize: 12, color: "#8a7880" }}>
+                  <span>Боль: </span>{"😣".repeat(todayRecord.pain_level)}
+                </div>
               )}
             </div>
-            <Link href={`/app/cycle/day/${today}`} className="inline-block mt-3 text-sm text-rose-500 hover:underline">Редактировать</Link>
+            <Link href={`/app/cycle/day/${today}`} style={{ display: "inline-block", marginTop: 12, fontSize: 12, color: "hsl(340,75%,55%)", textDecoration: "none", fontWeight: 500 }}>
+              Редактировать →
+            </Link>
           </div>
         ) : (
-          <div className="text-center py-4">
-            <p className="text-sm text-gray-500 mb-3">Сегодня ещё не заполнено</p>
-            <Link href={`/app/cycle/day/${today}`} className="inline-block px-5 py-2 bg-rose-500 text-white rounded-xl text-sm font-medium hover:bg-rose-600 transition-colors">
+          <div style={{ textAlign: "center", padding: "12px 0" }}>
+            <p style={{ fontSize: 13, color: "#aaa", marginBottom: 14 }}>Сегодня ещё не заполнено</p>
+            <Link href={`/app/cycle/day/${today}`} style={{
+              display: "inline-block", padding: "10px 24px", borderRadius: 12,
+              background: "linear-gradient(135deg,hsl(340,75%,55%),hsl(325,65%,52%))",
+              color: "#fff", fontSize: 13, fontWeight: 600, textDecoration: "none",
+            }}>
               Заполнить сегодня
             </Link>
           </div>
@@ -108,17 +129,27 @@ export default async function CyclePage() {
 
       {/* Recent days */}
       {recentDays && recentDays.length > 0 && (
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-rose-100">
-          <h2 className="text-sm font-semibold text-gray-600 mb-3">Последние дни</h2>
-          <div className="space-y-2">
-            {recentDays.map(day => (
-              <Link key={day.id} href={`/app/cycle/day/${day.date}`} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0 hover:bg-gray-50 rounded-lg px-2 transition-colors">
-                <span className="text-sm text-gray-600">{format(new Date(day.date), "d MMMM", { locale: ru })}</span>
-                <div className="flex items-center gap-2">
-                  {day.phase && (
-                    <span className={`text-xs px-2 py-0.5 rounded-full border ${phaseColors[day.phase]}`}>{phaseLabels[day.phase]}</span>
-                  )}
-                </div>
+        <div style={glassCard}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: "#8a7880", marginBottom: 12 }}>Последние дни</div>
+          <div>
+            {recentDays.map((day, i) => (
+              <Link key={day.id} href={`/app/cycle/day/${day.date}`} style={{
+                display: "flex", alignItems: "center", justifyContent: "space-between",
+                padding: "9px 0", textDecoration: "none",
+                borderBottom: i < recentDays.length - 1 ? "1px solid hsl(340,20%,96%)" : "none",
+              }}>
+                <span style={{ fontSize: 13, color: "#4a3f44" }}>
+                  {format(new Date(day.date), "d MMMM", { locale: ru })}
+                </span>
+                {day.phase && (
+                  <div style={{
+                    fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 20,
+                    background: phaseConfig[day.phase]?.bg ?? "hsl(340,20%,95%)",
+                    color: phaseConfig[day.phase]?.color ?? "#aaa",
+                  }}>
+                    {phaseConfig[day.phase]?.label ?? day.phase}
+                  </div>
+                )}
               </Link>
             ))}
           </div>
@@ -126,14 +157,26 @@ export default async function CyclePage() {
       )}
 
       {/* Quick actions */}
-      <div className="grid grid-cols-2 gap-3">
-        <Link href={`/app/cycle/day/${today}`} className="bg-white rounded-2xl p-4 text-center shadow-sm border border-rose-100 hover:shadow-md transition-shadow">
-          <div className="text-2xl mb-1">📝</div>
-          <p className="text-xs font-medium text-gray-700">Записать день</p>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+        <Link href={`/app/cycle/day/${today}`} style={{
+          ...glassCard,
+          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+          padding: "20px 16px", textDecoration: "none", textAlign: "center",
+          background: "linear-gradient(135deg,hsl(340,100%,97%),#fff0fb)",
+          border: "1px solid hsl(340,60%,90%)",
+        }}>
+          <div style={{ fontSize: 28, marginBottom: 8 }}>📝</div>
+          <p style={{ fontSize: 12, fontWeight: 600, color: "#4a3f44" }}>Записать день</p>
         </Link>
-        <Link href="/app/cycle/preferences" className="bg-white rounded-2xl p-4 text-center shadow-sm border border-rose-100 hover:shadow-md transition-shadow">
-          <div className="text-2xl mb-1">💝</div>
-          <p className="text-xs font-medium text-gray-700">Моя поддержка</p>
+        <Link href="/app/cycle/preferences" style={{
+          ...glassCard,
+          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+          padding: "20px 16px", textDecoration: "none", textAlign: "center",
+          background: "linear-gradient(135deg,#faf5ff,#fdf2f8)",
+          border: "1px solid #e9d5ff",
+        }}>
+          <div style={{ fontSize: 28, marginBottom: 8 }}>💝</div>
+          <p style={{ fontSize: 12, fontWeight: 600, color: "#4a3f44" }}>Моя поддержка</p>
         </Link>
       </div>
     </div>

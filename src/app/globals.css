@@ -4,98 +4,131 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;1,500&display=swap');
 
+/* ============================================================
+   Вместе Design System — exact tokens from design bundle
+   ============================================================ */
+:root {
+  /* Rose scale — primary brand hue 340° */
+  --rose-50:  hsl(340, 100%, 97%);
+  --rose-100: hsl(340, 80%,  93%);
+  --rose-200: hsl(340, 75%,  85%);
+  --rose-300: hsl(340, 75%,  75%);
+  --rose-400: hsl(340, 75%,  65%);
+  --rose-500: hsl(340, 75%,  55%);   /* brand primary */
+  --rose-600: hsl(340, 75%,  45%);   /* hover */
+  --rose-700: hsl(340, 75%,  35%);   /* pressed */
+
+  --purple-500: #9c27b0;
+
+  /* Warm grays */
+  --gray-50:  hsl(340, 20%, 99%);
+  --gray-100: hsl(340, 20%, 95%);
+  --gray-200: hsl(340, 20%, 90%);
+  --gray-300: hsl(340, 15%, 80%);
+  --gray-400: hsl(340, 10%, 65%);
+  --gray-500: hsl(340, 10%, 55%);
+  --gray-600: hsl(340, 10%, 40%);
+  --gray-700: hsl(340, 12%, 25%);
+  --gray-800: hsl(340, 15%, 15%);
+  --gray-900: hsl(340, 15%, 12%);
+
+  /* Semantic */
+  --color-background:      var(--gray-50);
+  --color-foreground:      var(--gray-900);
+  --color-primary:         var(--rose-500);
+  --color-primary-hover:   var(--rose-600);
+  --color-card:            #ffffff;
+  --color-card-glass:      rgba(255, 255, 255, 0.82);
+  --color-border:          var(--gray-200);
+  --color-muted-fg:        var(--gray-500);
+
+  /* Gradients */
+  --gradient-hero:  linear-gradient(160deg, #fff1f5 0%, #fdf4ff 50%, #f0f4ff 100%);
+  --gradient-app:   linear-gradient(160deg, #fff8fa 0%, #fdf4ff 100%);
+  --gradient-cta:   linear-gradient(135deg, hsl(340,75%,55%) 0%, hsl(325,65%,52%) 100%);
+  --gradient-text:  linear-gradient(135deg, #e91e63 0%, #9c27b0 100%);
+
+  /* Shadows */
+  --shadow-rose: 0 8px 32px rgba(233, 30, 99, 0.15);
+  --shadow-soft: 0 4px 24px rgba(0, 0, 0, 0.06);
+  --shadow-card: 0 2px 16px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(233, 30, 99, 0.05);
+  --shadow-sm:   0 1px 4px rgba(0, 0, 0, 0.06);
+
+  /* Tailwind CSS var bridge */
+  --background:        340 20% 99%;
+  --foreground:        340 15% 12%;
+  --card:              0 0% 100%;
+  --card-foreground:   340 15% 12%;
+  --primary:           340 75% 55%;
+  --primary-foreground:0 0% 100%;
+  --secondary:         340 30% 96%;
+  --secondary-foreground: 340 15% 25%;
+  --muted:             340 20% 95%;
+  --muted-foreground:  340 10% 55%;
+  --accent:            340 75% 96%;
+  --accent-foreground: 340 75% 35%;
+  --destructive:       0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
+  --border:            340 20% 90%;
+  --input:             340 20% 90%;
+  --ring:              340 75% 55%;
+  --radius:            1rem;
+}
+
 @layer base {
-  :root {
-    --background: 340 20% 99%;
-    --foreground: 340 15% 12%;
-    --card: 0 0% 100%;
-    --card-foreground: 340 15% 12%;
-    --primary: 340 75% 55%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 340 30% 96%;
-    --secondary-foreground: 340 15% 25%;
-    --muted: 340 20% 95%;
-    --muted-foreground: 340 10% 55%;
-    --accent: 340 75% 96%;
-    --accent-foreground: 340 75% 35%;
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 340 20% 90%;
-    --input: 340 20% 90%;
-    --ring: 340 75% 55%;
-    --radius: 1rem;
-  }
-
   * { border-color: hsl(var(--border)); box-sizing: border-box; }
-
   html, body {
     background: hsl(var(--background));
     color: hsl(var(--foreground));
-    font-family: 'Inter', sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 1rem;
+    line-height: 1.5;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
+  h1, h2 { font-family: 'Playfair Display', Georgia, serif; }
 }
 
 @layer utilities {
-  .font-display { font-family: 'Playfair Display', serif; }
-
-  .gradient-rose {
-    background: linear-gradient(135deg, #fce4ec 0%, #fff0f3 40%, #fdf2f8 100%);
-  }
-
-  .gradient-hero {
-    background: linear-gradient(160deg, #fff1f5 0%, #fdf4ff 50%, #f0f4ff 100%);
-  }
-
-  .gradient-card {
-    background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,241,245,0.6) 100%);
-  }
-
-  .glass {
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-  }
+  .font-display { font-family: 'Playfair Display', Georgia, serif; }
 
   .text-gradient {
-    background: linear-gradient(135deg, #e91e63 0%, #9c27b0 100%);
+    background: var(--gradient-text);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
-  .shadow-rose {
-    box-shadow: 0 8px 32px rgba(233, 30, 99, 0.15);
+  .glass {
+    background: rgba(255, 255, 255, 0.82);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.65);
   }
 
-  .shadow-soft {
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  .glass-nav {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
   }
 
-  .shadow-card {
-    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(233, 30, 99, 0.05);
-  }
+  .shadow-rose { box-shadow: var(--shadow-rose); }
+  .shadow-soft { box-shadow: var(--shadow-soft); }
+  .shadow-card { box-shadow: var(--shadow-card); }
+
+  .gradient-hero { background: var(--gradient-hero); }
+  .gradient-app  { background: var(--gradient-app); }
+  .gradient-cta  { background: var(--gradient-cta); }
 
   .animate-float {
     animation: float 6s ease-in-out infinite;
   }
-
   .animate-float-delayed {
     animation: float 6s ease-in-out 2s infinite;
-  }
-
-  .animate-fade-up {
-    animation: fadeUp 0.6s ease-out forwards;
   }
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-}
-
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-10px); }
 }
