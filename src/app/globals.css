@@ -2,33 +2,100 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;1,500&display=swap');
+
 @layer base {
   :root {
-    --background: 30 20% 98%;
-    --foreground: 20 10% 15%;
+    --background: 340 20% 99%;
+    --foreground: 340 15% 12%;
     --card: 0 0% 100%;
-    --card-foreground: 20 10% 15%;
-    --primary: 340 60% 55%;
+    --card-foreground: 340 15% 12%;
+    --primary: 340 75% 55%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 30 30% 95%;
-    --secondary-foreground: 20 10% 25%;
-    --muted: 30 20% 94%;
-    --muted-foreground: 20 8% 50%;
-    --accent: 340 60% 95%;
-    --accent-foreground: 340 60% 35%;
+    --secondary: 340 30% 96%;
+    --secondary-foreground: 340 15% 25%;
+    --muted: 340 20% 95%;
+    --muted-foreground: 340 10% 55%;
+    --accent: 340 75% 96%;
+    --accent-foreground: 340 75% 35%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --border: 30 20% 88%;
-    --input: 30 20% 88%;
-    --ring: 340 60% 55%;
-    --radius: 0.75rem;
+    --border: 340 20% 90%;
+    --input: 340 20% 90%;
+    --ring: 340 75% 55%;
+    --radius: 1rem;
   }
 
-  * {
-    border-color: hsl(var(--border));
-  }
+  * { border-color: hsl(var(--border)); box-sizing: border-box; }
+
   html, body {
     background: hsl(var(--background));
     color: hsl(var(--foreground));
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
   }
+}
+
+@layer utilities {
+  .font-display { font-family: 'Playfair Display', serif; }
+
+  .gradient-rose {
+    background: linear-gradient(135deg, #fce4ec 0%, #fff0f3 40%, #fdf2f8 100%);
+  }
+
+  .gradient-hero {
+    background: linear-gradient(160deg, #fff1f5 0%, #fdf4ff 50%, #f0f4ff 100%);
+  }
+
+  .gradient-card {
+    background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,241,245,0.6) 100%);
+  }
+
+  .glass {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+  }
+
+  .text-gradient {
+    background: linear-gradient(135deg, #e91e63 0%, #9c27b0 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .shadow-rose {
+    box-shadow: 0 8px 32px rgba(233, 30, 99, 0.15);
+  }
+
+  .shadow-soft {
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  }
+
+  .shadow-card {
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(233, 30, 99, 0.05);
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .animate-float-delayed {
+    animation: float 6s ease-in-out 2s infinite;
+  }
+
+  .animate-fade-up {
+    animation: fadeUp 0.6s ease-out forwards;
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }

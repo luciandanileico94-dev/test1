@@ -16,7 +16,7 @@ const navItems = [
   { href: "/app/cycle", label: "Цикл", icon: Moon },
   { href: "/app/checkin", label: "Check-in", icon: CheckSquare },
   { href: "/app/agreements", label: "Договорённости", icon: FileText },
-  { href: "/app/dates", label: "Идеи свиданий", icon: Stars },
+  { href: "/app/dates", label: "Свидания", icon: Stars },
   { href: "/app/settings", label: "Настройки", icon: Settings },
 ]
 
@@ -33,21 +33,22 @@ export default function AppNav({ variant }: { variant: "sidebar" | "bottom" }) {
 
   if (variant === "sidebar") {
     return (
-      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
         {navItems.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(href + "/")
           return (
             <Link
               key={href}
               href={href}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors ${
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all ${
                 active
-                  ? "bg-rose-50 text-rose-600 font-medium"
-                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                  ? "bg-rose-50 text-rose-600 font-semibold shadow-sm"
+                  : "text-gray-500 hover:bg-gray-50 hover:text-gray-800"
               }`}
             >
-              <Icon size={18} />
+              <Icon size={17} className={active ? "text-rose-500" : ""} />
               {label}
+              {active && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-rose-400" />}
             </Link>
           )
         })}
@@ -56,19 +57,21 @@ export default function AppNav({ variant }: { variant: "sidebar" | "bottom" }) {
   }
 
   return (
-    <nav className="flex justify-around items-center px-2 py-2">
+    <nav className="flex justify-around items-center px-2 py-1.5">
       {mobileItems.map(({ href, label, icon: Icon }) => {
         const active = pathname === href || pathname.startsWith(href + "/")
         return (
           <Link
             key={href}
             href={href}
-            className={`flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl transition-colors ${
-              active ? "text-rose-600" : "text-gray-400"
+            className={`flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl transition-all ${
+              active ? "text-rose-500" : "text-gray-400 hover:text-gray-600"
             }`}
           >
-            <Icon size={20} />
-            <span className="text-[10px]">{label}</span>
+            <div className={`p-1.5 rounded-xl transition-all ${active ? "bg-rose-50" : ""}`}>
+              <Icon size={20} />
+            </div>
+            <span className={`text-[10px] font-medium ${active ? "text-rose-500" : ""}`}>{label}</span>
           </Link>
         )
       })}
