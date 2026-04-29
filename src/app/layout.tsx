@@ -3,8 +3,8 @@ import "./globals.css";
 import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
-  title: "WishList — события и подарки",
-  description: "Создавайте красивые страницы событий с вишлистом подарков и живой бронью",
+  title: "Вместе — личное пространство для пары",
+  description: "Планируйте свидания, сохраняйте воспоминания и поддерживайте друг друга каждый день.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -1,39 +1,39 @@
-import { createServerClient } from "@supabase/ssr";
-import { NextResponse, type NextRequest } from "next/server";
+import { createServerClient } from "@supabase/ssr"
+import { NextResponse, type NextRequest } from "next/server"
+import type { CookieOptions } from "@supabase/ssr"
 
 export async function updateSession(request: NextRequest) {
-  let response = NextResponse.next({ request });
+  let response = NextResponse.next({ request })
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(items) {
-          for (const { name, value } of items) {
-            request.cookies.set(name, value);
-          }
-          response = NextResponse.next({ request });
-          for (const { name, value, options } of items) {
-            response.cookies.set(name, value, options);
-          }
+        getAll() { return request.cookies.getAll() },
+        setAll(items: { name: string; value: string; options: CookieOptions }[]) {
+          for (const { name, value } of items) request.cookies.set(name, value)
+          response = NextResponse.next({ request })
+          for (const { name, value, options } of items) response.cookies.set(name, value, options)
         },
       },
     },
-  );
+  )
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser()
+  const path = request.nextUrl.pathname
 
-  const path = request.nextUrl.pathname;
-  if (!user && path.startsWith("/dashboard")) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    url.searchParams.set("next", path);
-    return NextResponse.redirect(url);
+  if (!user && (path.startsWith("/app") || path.startsWith("/onboarding"))) {
+    const url = request.nextUrl.clone()
+    url.pathname = "/login"
+    return NextResponse.redirect(url)
   }
 
-  return response;
+  if (user && (path === "/login" || path === "/register")) {
+    const url = request.nextUrl.clone()
+    url.pathname = "/app/dashboard"
+    return NextResponse.redirect(url)
+  }
+
+  return response
 }

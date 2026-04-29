@@ -4,23 +4,23 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 4%;
+    --background: 30 20% 98%;
+    --foreground: 20 10% 15%;
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 4%;
-    --primary: 262 83% 58%;
+    --card-foreground: 20 10% 15%;
+    --primary: 340 60% 55%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 240 5% 96%;
-    --secondary-foreground: 240 6% 10%;
-    --muted: 240 5% 96%;
-    --muted-foreground: 240 4% 46%;
-    --accent: 262 83% 96%;
-    --accent-foreground: 262 83% 30%;
-    --destructive: 0 84% 60%;
+    --secondary: 30 30% 95%;
+    --secondary-foreground: 20 10% 25%;
+    --muted: 30 20% 94%;
+    --muted-foreground: 20 8% 50%;
+    --accent: 340 60% 95%;
+    --accent-foreground: 340 60% 35%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --border: 240 6% 90%;
-    --input: 240 6% 90%;
-    --ring: 262 83% 58%;
+    --border: 30 20% 88%;
+    --input: 30 20% 88%;
+    --ring: 340 60% 55%;
     --radius: 0.75rem;
   }
 
@@ -31,11 +31,4 @@
     background: hsl(var(--background));
     color: hsl(var(--foreground));
   }
-}
-
-/* Leaflet container fix inside flex layouts */
-.leaflet-container {
-  width: 100%;
-  height: 100%;
-  z-index: 0;
 }

@@ -20,6 +20,9 @@ export default function NewEventPage() {
         title: String(fd.get("title") ?? ""),
         description: String(fd.get("description") ?? ""),
         event_date: (fd.get("event_date") as string) || null,
+        location_name: "",
+        address: "",
+        directions: "",
         is_public: true,
       });
     } catch (err) {
